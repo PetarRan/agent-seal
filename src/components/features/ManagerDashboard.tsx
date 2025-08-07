@@ -19,9 +19,14 @@ import { useXionRealIntegration } from '../../services/xion/xionRealIntegration'
 interface ManagerDashboardProps {
   onAgentActionPress: (action: AgentAction) => void;
   onLogout: () => void;
+  authMode?: 'abstraxion' | 'demo' | 'none';
 }
 
-export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActionPress, onLogout }) => {
+export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ 
+  onAgentActionPress, 
+  onLogout,
+  authMode = 'none'
+}) => {
   const { data: account } = useAbstraxionAccount();
   const { fetchAgentActions, getAgents } = useBlockchainEvents();
   const { queryActionsFromXion } = useXionRealIntegration();
@@ -32,6 +37,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
   const [agentActions, setAgentActions] = useState<AgentAction[]>([]);
   const [agents, setAgents] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
   
@@ -48,6 +54,20 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
   const actionOptions = ['All actions', 'Emails', 'Pull requests', 'Code changes'];
   const statusOptions = ['All status', 'Done', 'In progress', 'Scheduled'];
 
+  // Determine connection status based on auth mode
+  const getConnectionStatus = () => {
+    switch (authMode) {
+      case 'abstraxion':
+        return account ? 'Connected to Xion' : 'Connecting to Xion';
+      case 'demo':
+        return 'Demo Mode Active';
+      default:
+        return 'Disconnected';
+    }
+  };
+
+  const isConnectedStatus = authMode === 'abstraxion' ? !!account : authMode === 'demo';
+
   // Load data from both sources
   const loadData = async () => {
     try {
@@ -55,11 +75,30 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
       
       // Load from Xion blockchain (real actions logged via zkTLS)
       let xionActions: any[] = [];
-      try {
-        xionActions = await queryActionsFromXion('test_agent_001');
-      } catch (error) {
-        console.log('Xion blockchain not available, using mock data only');
-        xionActions = [];
+      if (authMode === 'abstraxion') {
+        try {
+          xionActions = await queryActionsFromXion('test_agent_001');
+          setIsConnected(true);
+        } catch (error) {
+          console.log('Xion blockchain not available, using mock data only');
+          xionActions = [];
+          setIsConnected(false);
+        }
+      } else if (authMode === 'demo') {
+        // In demo mode, simulate Xion actions
+        xionActions = [
+          {
+            agentId: 'demo_agent_001',
+            timestamp: Date.now() - 1000 * 60 * 30, // 30 minutes ago
+            actionType: 'task_completion',
+            metadata: {
+              description: 'Demo task completed via zkTLS',
+              taskId: 'demo_task_001',
+            },
+            xionTxHash: `demo_tx_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
+          }
+        ];
+        setIsConnected(true);
       }
       
       // Convert Xion actions to AgentAction format
@@ -117,7 +156,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
       const allActions = [...convertedActions, ...mockActions].sort((a, b) => b.timestamp - a.timestamp);
       
       setAgentActions(allActions);
-      setAgents(['openai_agent_001', 'test_agent_001']);
+      setAgents(['openai_agent_001', 'test_agent_001', 'demo_agent_001']);
     } catch (error) {
       console.error('Failed to load data:', error);
       // Fallback to mock data only
@@ -170,7 +209,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
   // Fetch data from blockchain
   useEffect(() => {
     loadData();
-  }, []); // Empty dependency array to prevent infinite loops
+  }, [authMode]); // Reload when auth mode changes
 
   // Fade in animation for background
   useEffect(() => {
@@ -238,6 +277,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#1a1a1a" />
       
       {/* Black Background */}
       <View style={styles.blackBackground} />
@@ -254,41 +294,53 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
         resizeMode="cover" 
       />
       
-      {/* Top Section - Dark Background */}
-      <View style={styles.topSection}>
-        {/* Header */}
-        <View style={styles.header}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
           <Text style={styles.headerTitle}>Home</Text>
-          <TouchableOpacity onPress={() => setShowSettings(true)}>
+        </View>
+        
+        <View style={styles.headerRight}>
+          <View style={styles.connectionStatus}>
+            <View style={[styles.connectionDot, isConnectedStatus ? styles.connectedDot : styles.disconnectedDot]} />
+            <Text style={styles.connectionText}>
+              {getConnectionStatus()}
+            </Text>
+          </View>
+          
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={() => setShowSettings(true)}
+          >
             <Image source={require('../../../assets/media/profile.png')} style={styles.profileImage} />
           </TouchableOpacity>
         </View>
+      </View>
 
-        {/* Current Day and Date */}
-        <View style={styles.dateSection}>
-          <View style={styles.currentDayContainer}>
-            <Text style={styles.currentDayText}>{getCurrentDay()}</Text>
-            <View style={styles.currentDayDot} />
-          </View>
-          <Text style={styles.fullDateText}>{getCurrentDate()}</Text>
+      {/* Current Day and Date */}
+      <View style={styles.dateSection}>
+        <View style={styles.currentDayContainer}>
+          <Text style={styles.currentDayText}>{getCurrentDay()}</Text>
+          <View style={styles.currentDayDot} />
         </View>
+        <Text style={styles.fullDateText}>{getCurrentDate()}</Text>
+      </View>
 
-        {/* Greeting and Summary */}
-        <View style={styles.greetingSection}>
-          <Text style={styles.greeting}>Good morning, Jessica.</Text>
-          <View style={styles.summaryContainer}>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryText}>You have </Text>
-              <Image source={require('../../../assets/icons/aigen.png')} style={styles.summaryIcon} />
-              <Text style={styles.summaryText}> 4 agents doing </Text>
-              <Image source={require('../../../assets/icons/check.png')} style={styles.summaryIcon} />
-              <Text style={styles.summaryText}> 6 tasks. All your</Text>
-            </View>
-            <View style={styles.verificationRow}>
-              <Text style={styles.summaryText}>agents have been </Text>
-              <Image source={require('../../../assets/icons/verifiedbig.png')} style={styles.verifiedIcon} />
-              <Text style={styles.verifiedText}> verified</Text>
-            </View>
+      {/* Greeting and Summary */}
+      <View style={styles.greetingSection}>
+        <Text style={styles.greeting}>Good morning, Jessica.</Text>
+        <View style={styles.summaryContainer}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryText}>You have </Text>
+            <Image source={require('../../../assets/icons/aigen.png')} style={styles.summaryIcon} />
+            <Text style={styles.summaryText}> 4 agents doing </Text>
+            <Image source={require('../../../assets/icons/check.png')} style={styles.summaryIcon} />
+            <Text style={styles.summaryText}> 6 tasks. All your</Text>
+          </View>
+          <View style={styles.verificationRow}>
+            <Text style={styles.summaryText}>agents have been </Text>
+            <Image source={require('../../../assets/icons/verifiedbig.png')} style={styles.verifiedIcon} />
+            <Text style={styles.verifiedText}> verified</Text>
           </View>
         </View>
       </View>
@@ -456,9 +508,10 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
       {showSettings && (
         <Settings
           onClose={() => setShowSettings(false)}
-          walletAddress={account?.bech32Address || ''}
+          walletAddress={account?.bech32Address || (authMode === 'demo' ? 'demo_wallet_address' : '')}
           onLogout={onLogout}
           onRefresh={loadData}
+          authMode={authMode}
         />
       )}
     </View>
@@ -490,35 +543,74 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  topSection: {
-    flex: 0.45,
-    paddingTop: 60,
-    paddingHorizontal: 0,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 30,
     paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   headerTitle: {
     fontSize: 32,
-    fontWeight: '500',
+    fontWeight: 'bold',
     color: 'white',
     fontFamily: 'Hauora',
   },
-  profileImage: {
-    width: 40,
-    height: 40,
+  connectionStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 20,
+  },
+  connectionDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  connectedDot: {
+    backgroundColor: '#4CAF50',
+  },
+  disconnectedDot: {
+    backgroundColor: '#FF3B30',
+  },
+  connectionText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  settingsButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  profileImage: {
+    width: 35,
+    height: 35,
+    borderRadius: 17.5,
   },
   dateSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 30,
     paddingHorizontal: 20,
+    marginTop: 10,
   },
   currentDayContainer: {
     flexDirection: 'row',
@@ -544,8 +636,9 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   greetingSection: {
-    flex: 1,
+    flex: 0.45,
     paddingHorizontal: 20,
+    marginTop: 10,
   },
   greeting: {
     fontSize: 25,
@@ -592,7 +685,7 @@ const styles = StyleSheet.create({
     lineHeight: 25,
   },
   bottomSection: {
-    flex: 0.55,
+    flex: 1,
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

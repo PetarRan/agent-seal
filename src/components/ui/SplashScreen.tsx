@@ -8,12 +8,15 @@ import {
   StatusBar,
   Image,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 interface SplashScreenProps {
   onContinueWithWallet: () => void;
   onSetupWallet: () => void;
+  onDemoMode?: () => void;
+  isConnecting?: boolean;
 }
 
 // SVG Logo Component - Using your actual logo
@@ -28,6 +31,8 @@ const AgentSealLogo: React.FC = () => (
 export const SplashScreen: React.FC<SplashScreenProps> = ({
   onContinueWithWallet,
   onSetupWallet,
+  onDemoMode,
+  isConnecting = false,
 }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -67,17 +72,46 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
             <AgentSealLogo />
             <Text style={styles.appName}>AgentSeal</Text>
           </View>
+          {isConnecting && (
+            <View style={styles.connectingContainer}>
+              <ActivityIndicator size="small" color="white" />
+              <Text style={styles.connectingText}>Connecting to Xion blockchain...</Text>
+            </View>
+          )}
         </View>
 
         {/* Bottom Section - Action Buttons */}
         <View style={styles.bottomSection}>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.primaryButton} onPress={onContinueWithWallet}>
-              <Text style={styles.primaryButtonText}>Continue with wallet</Text>
+            <TouchableOpacity 
+              style={[styles.primaryButton, isConnecting && styles.disabledButton]} 
+              onPress={onContinueWithWallet}
+              disabled={isConnecting}
+            >
+              <Text style={[styles.primaryButtonText, isConnecting && styles.disabledButtonText]}>
+                {isConnecting ? 'Connecting...' : 'Continue with wallet'}
+              </Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.secondaryButton} onPress={onSetupWallet}>
-              <Text style={styles.secondaryButtonText}>Set up a wallet with XION</Text>
+            <TouchableOpacity 
+              style={[styles.secondaryButton, isConnecting && styles.disabledButton]} 
+              onPress={onSetupWallet}
+              disabled={isConnecting}
+            >
+              <Text style={[styles.secondaryButtonText, isConnecting && styles.disabledButtonText]}>
+                {isConnecting ? 'Setting up...' : 'Set up a wallet with XION'}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Demo Mode Button */}
+            <TouchableOpacity 
+              style={[styles.demoButton, isConnecting && styles.disabledButton]} 
+              onPress={onDemoMode}
+              disabled={isConnecting}
+            >
+              <Text style={[styles.demoButtonText, isConnecting && styles.disabledButtonText]}>
+                Try Demo Mode
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -188,5 +222,37 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: 'white',
     fontFamily: 'Hauora',
+  },
+  demoButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    paddingVertical: 18,
+    borderRadius: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  demoButtonText: {
+    fontSize: 17,
+    fontWeight: '500',
+    color: 'white',
+    fontFamily: 'Hauora',
+  },
+  connectingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 20,
+  },
+  connectingText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: 'white',
+    fontFamily: 'Hauora',
+  },
+  disabledButton: {
+    opacity: 0.7,
+  },
+  disabledButtonText: {
+    color: '#888',
   },
 });
