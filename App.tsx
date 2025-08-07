@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { AbstraxionProvider } from "@burnt-labs/abstraxion-react-native";
+import { AgentActionLogger } from './components/AgentActionLogger';
 
 export default function App() {
   const treasuryConfig = {
@@ -10,7 +11,7 @@ export default function App() {
   return (
     <AbstraxionProvider config={treasuryConfig}>
       <View style={styles.container}>
-        <Text>Open up App.tsx to start working on your app!</Text>
+        <AgentActionLogger />
         <StatusBar style="auto" />
       </View>
     </AbstraxionProvider>
