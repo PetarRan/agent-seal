@@ -2,7 +2,7 @@
 
 AgentSeal implements a comprehensive agent action logging and verification system using **Xion's Mobile Developer Kit (Dave)** with **zkTLS (Zero-Knowledge Transport Layer Security)** technology for privacy-preserving verification. Agents can log their actions (task completion, location visits, form submissions) to an immutable blockchain ledger while maintaining privacy through Xion's zero-knowledge proofs.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 18+
@@ -27,7 +27,7 @@ npm run android  # Android Emulator
 - **Dashboard Tab**: Main dashboard showing agent actions and analytics
 - **Xion zkTLS Logger Tab**: Privacy-preserving action logging with Xion zkTLS technology
 
-## 🔐 Xion zkTLS Technology Integration
+## Xion zkTLS Technology Integration
 
 ### How It Works
 
@@ -53,7 +53,7 @@ const isVerified = await xionZKTLS.verifyProofOnChain(locationProof);
 - **Action Privacy**: Verify actions without revealing sensitive metadata using Xion zkTLS
 - **Agent Privacy**: Verify agent identity without exposing personal information using Xion zkTLS
 
-## 🏗️ Architecture
+## Architecture
 
 ### Core Components
 
@@ -86,7 +86,7 @@ const isVerified = await xionZKTLS.verifyProofOnChain(locationProof);
    - Action metadata structures
    - Verification proof types
 
-## 🎯 Features
+## Features
 
 ### Agent Authentication
 - **Meta Accounts Integration**: Agents authenticate using Abstraxion's Meta Accounts
@@ -113,7 +113,7 @@ const isVerified = await xionZKTLS.verifyProofOnChain(locationProof);
 - **Privacy-Preserving Proofs**: Location and form data are verified using Xion's zkTLS technology
 - **Historical Audit**: Complete action history is queryable from the Xion blockchain while maintaining privacy
 
-## 🧪 Testing the App
+## Testing the App
 
 ### 1. Start the App
 ```bash
@@ -148,13 +148,13 @@ npm run dev
 2. Click "Verify with Xion zkTLS" on any action
 3. **Result**: Action is verified on-chain using zkTLS proofs while maintaining privacy
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 Create a `.env.local` file:
 
 ```env
-EXPO_PUBLIC_TREASURY_CONTRACT_ADDRESS=xion1wuu294dntknh3s6h02m6nhnpu86l5hr2hrpyf3srz58qpunchuequ6gfcm
+EXPO_PUBLIC_TREASURY_CONTRACT_ADDRESS=xion1....asda
 EXPO_PUBLIC_RPC_URL=https://xion-testnet-rpc.burnt.com
 EXPO_PUBLIC_GAS_PRICE=0.025ustars
 ```
@@ -174,7 +174,7 @@ The system expects a Xion smart contract with the following message types:
 - `verify_action`: Verify action authenticity with Xion zkTLS proof
 - `verify_zk_proof`: Verify zero-knowledge proof
 
-## 🛡️ Security Features with Xion zkTLS
+## Security Features with Xion zkTLS
 
 ### Zero-Knowledge Proofs
 - All actions are verified using Xion's zkTLS technology for privacy
@@ -199,7 +199,7 @@ The system expects a Xion smart contract with the following message types:
 - Session-based authentication with automatic logout
 - Privacy-preserving identity verification
 
-## 📱 Xion Mobile Developer Kit (Dave) Integration
+## Xion Mobile Developer Kit (Dave) Integration
 
 This project leverages Xion's Mobile Developer Kit (Dave) to provide:
 
@@ -208,7 +208,7 @@ This project leverages Xion's Mobile Developer Kit (Dave) to provide:
 - **Xion Blockchain Integration**: Seamless connection to Xion testnet
 - **Privacy-Preserving Verification**: Automatic zkTLS proof generation and verification
 
-## 🎯 Xion Hackathon Compliance
+## Xion Hackathon Compliance
 
 This project meets all Xion hackathon requirements:
 
@@ -219,7 +219,7 @@ This project meets all Xion hackathon requirements:
 ✅ **iOS/Android mobile app**  
 ✅ **Verifiable internet data**  
 
-## 🚀 Development
+## Development
 
 ### Prerequisites
 - Node.js 18+
@@ -250,7 +250,7 @@ npm test
 EXPO_PUBLIC_RPC_URL=https://xion-testnet-rpc.burnt.com npm run dev
 ```
 
-## 📚 API Reference
+## API Reference
 
 ### AgentActionService with Xion zkTLS
 
@@ -303,7 +303,7 @@ const {
 } = useBlockchainService();
 ```
 
-## 🔒 Xion zkTLS Privacy Features
+## Xion zkTLS Privacy Features
 
 ### Location Privacy
 - Prove agent visited a location without revealing exact coordinates using Xion zkTLS
