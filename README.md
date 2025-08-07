@@ -1,4 +1,4 @@
-# AgentSeal - Xion zkTLS Privacy-Preserving Agent Action Logger
+# <img width="30" height="30" alt="image" src="https://github.com/user-attachments/assets/a7407e4f-8763-4a5e-b125-8d28de7239ad" /> &nbsp;AgentSeal
 
 AgentSeal implements a comprehensive agent action logging and verification system using **Xion's Mobile Developer Kit (Dave)** with **zkTLS (Zero-Knowledge Transport Layer Security)** technology for privacy-preserving verification. Agents can log their actions (task completion, location visits, form submissions) to an immutable blockchain ledger while maintaining privacy through Xion's zero-knowledge proofs.
 
