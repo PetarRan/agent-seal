@@ -10,10 +10,11 @@ import {
   Animated,
 } from 'react-native';
 import { useAbstraxionAccount } from '@burnt-labs/abstraxion-react-native';
-import { AgentAction } from '../types/agent';
+import { AgentAction } from '../../types/agent/agent';
 import { AgentActionDetail } from './AgentActionDetail';
-import { Settings } from './Settings';
-import { useBlockchainEvents } from '../services/blockchainEventService';
+import { Settings } from '../ui/Settings';
+import { useBlockchainEvents } from '../../services/blockchain/blockchainEventService';
+import { useXionRealIntegration } from '../../services/xion/xionRealIntegration';
 
 interface ManagerDashboardProps {
   onAgentActionPress: (action: AgentAction) => void;
@@ -23,6 +24,7 @@ interface ManagerDashboardProps {
 export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActionPress, onLogout }) => {
   const { data: account } = useAbstraxionAccount();
   const { fetchAgentActions, getAgents } = useBlockchainEvents();
+  const { queryActionsFromXion } = useXionRealIntegration();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showSettings, setShowSettings] = useState(false);
   const [showActionDetail, setShowActionDetail] = useState(false);
@@ -46,61 +48,127 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
   const actionOptions = ['All actions', 'Emails', 'Pull requests', 'Code changes'];
   const statusOptions = ['All status', 'Done', 'In progress', 'Scheduled'];
 
+  // Load data from both sources
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Load from Xion blockchain (real actions logged via zkTLS)
+      let xionActions: any[] = [];
+      try {
+        xionActions = await queryActionsFromXion('test_agent_001');
+      } catch (error) {
+        console.log('Xion blockchain not available, using mock data only');
+        xionActions = [];
+      }
+      
+      // Convert Xion actions to AgentAction format
+      const convertedActions: AgentAction[] = xionActions.map((xionAction: any) => ({
+        agentId: xionAction.agentId,
+        timestamp: xionAction.timestamp,
+        actionType: xionAction.actionType as AgentAction['actionType'],
+        actionMetadata: xionAction.metadata,
+        blockchainTxHash: xionAction.xionTxHash,
+        status: 'completed'
+      }));
+      
+      // Combine with mock data for demo
+      const mockActions: AgentAction[] = [
+        {
+          agentId: 'openai_agent_001',
+          timestamp: Date.now() - 2 * 60 * 60 * 1000,
+          actionType: 'task_completion',
+          actionMetadata: {
+            description: 'Sent an email to the HR team regarding the problem with the holidays',
+            taskId: 'task_001',
+          },
+          blockchainTxHash: 'cd81f167392c65fc3fe4553486c228a52281cee238085b3b4c8a1c5d3c9e182e',
+          status: 'completed',
+        },
+        {
+          agentId: 'openai_agent_001',
+          timestamp: Date.now() - 4 * 60 * 60 * 1000,
+          actionType: 'task_completion',
+          actionMetadata: {
+            description: 'Updated project documentation',
+            taskId: 'task_002',
+          },
+          blockchainTxHash: 'ab72e456789c12d34e567f890a123b456c789d012e345f678g901h234i567j',
+          status: 'completed',
+        },
+        {
+          agentId: 'openai_agent_001',
+          timestamp: Date.now() - 6 * 60 * 60 * 1000,
+          actionType: 'location_visit',
+          actionMetadata: {
+            description: 'Visited client office for meeting',
+            location: {
+              latitude: 37.7749,
+              longitude: -122.4194,
+              address: 'San Francisco, CA',
+            },
+          },
+          blockchainTxHash: 'ef89a234b567c890d123e456f789g012h345i678j901k234l567m890n',
+          status: 'completed',
+        },
+      ];
+      
+      // Combine and sort by timestamp (newest first)
+      const allActions = [...convertedActions, ...mockActions].sort((a, b) => b.timestamp - a.timestamp);
+      
+      setAgentActions(allActions);
+      setAgents(['openai_agent_001', 'test_agent_001']);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+      // Fallback to mock data only
+      const mockActions: AgentAction[] = [
+        {
+          agentId: 'openai_agent_001',
+          timestamp: Date.now() - 2 * 60 * 60 * 1000,
+          actionType: 'task_completion',
+          actionMetadata: {
+            description: 'Sent an email to the HR team regarding the problem with the holidays',
+            taskId: 'task_001',
+          },
+          blockchainTxHash: 'cd81f167392c65fc3fe4553486c228a52281cee238085b3b4c8a1c5d3c9e182e',
+          status: 'completed',
+        },
+        {
+          agentId: 'openai_agent_001',
+          timestamp: Date.now() - 4 * 60 * 60 * 1000,
+          actionType: 'task_completion',
+          actionMetadata: {
+            description: 'Updated project documentation',
+            taskId: 'task_002',
+          },
+          blockchainTxHash: 'ab72e456789c12d34e567f890a123b456c789d012e345f678g901h234i567j',
+          status: 'completed',
+        },
+        {
+          agentId: 'openai_agent_001',
+          timestamp: Date.now() - 6 * 60 * 60 * 1000,
+          actionType: 'location_visit',
+          actionMetadata: {
+            description: 'Visited client office for meeting',
+            location: {
+              latitude: 37.7749,
+              longitude: -122.4194,
+              address: 'San Francisco, CA',
+            },
+          },
+          blockchainTxHash: 'ef89a234b567c890d123e456f789g012h345i678j901k234l567m890n',
+          status: 'completed',
+        },
+      ];
+      setAgentActions(mockActions);
+      setAgents(['openai_agent_001']);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Fetch data from blockchain
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Use mock data for now to avoid blockchain issues
-        const mockActions: AgentAction[] = [
-          {
-            agentId: 'openai_agent_001',
-            timestamp: Date.now() - 2 * 60 * 60 * 1000,
-            actionType: 'task_completion',
-            actionMetadata: {
-              description: 'Sent an email to the HR team regarding the problem with the holidays',
-              taskId: 'task_001',
-            },
-            blockchainTxHash: 'cd81f167392c65fc3fe4553486c228a52281cee238085b3b4c8a1c5d3c9e182e',
-            status: 'completed',
-          },
-          {
-            agentId: 'openai_agent_001',
-            timestamp: Date.now() - 4 * 60 * 60 * 1000,
-            actionType: 'task_completion',
-            actionMetadata: {
-              description: 'Updated project documentation',
-              taskId: 'task_002',
-            },
-            blockchainTxHash: 'ab72e456789c12d34e567f890a123b456c789d012e345f678g901h234i567j',
-            status: 'completed',
-          },
-          {
-            agentId: 'openai_agent_001',
-            timestamp: Date.now() - 6 * 60 * 60 * 1000,
-            actionType: 'location_visit',
-            actionMetadata: {
-              description: 'Visited client office for meeting',
-              location: {
-                latitude: 37.7749,
-                longitude: -122.4194,
-                address: 'San Francisco, CA',
-              },
-            },
-            blockchainTxHash: 'ef89a234b567c890d123e456f789g012h345i678j901k234l567m890n',
-            status: 'completed',
-          },
-        ];
-        setAgentActions(mockActions);
-        setAgents(['openai_agent_001']);
-      } catch (error) {
-        console.error('Failed to load data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadData();
   }, []); // Empty dependency array to prevent infinite loops
 
@@ -176,7 +244,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
       
       {/* Animated Background Image */}
       <Animated.Image 
-        source={require('../assets/homebg.png')} 
+        source={require('../../../assets/media/homebg.png')} 
         style={[
           styles.backgroundImage,
           {
@@ -192,7 +260,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Home</Text>
           <TouchableOpacity onPress={() => setShowSettings(true)}>
-            <Image source={require('../assets/profile.png')} style={styles.profileImage} />
+            <Image source={require('../../../assets/media/profile.png')} style={styles.profileImage} />
           </TouchableOpacity>
         </View>
 
@@ -211,14 +279,14 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
           <View style={styles.summaryContainer}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryText}>You have </Text>
-              <Image source={require('../assets/aigen.png')} style={styles.summaryIcon} />
+              <Image source={require('../../../assets/icons/aigen.png')} style={styles.summaryIcon} />
               <Text style={styles.summaryText}> 4 agents doing </Text>
-              <Image source={require('../assets/check.png')} style={styles.summaryIcon} />
+              <Image source={require('../../../assets/icons/check.png')} style={styles.summaryIcon} />
               <Text style={styles.summaryText}> 6 tasks. All your</Text>
             </View>
             <View style={styles.verificationRow}>
               <Text style={styles.summaryText}>agents have been </Text>
-              <Image source={require('../assets/verifiedbig.png')} style={styles.verifiedIcon} />
+              <Image source={require('../../../assets/icons/verifiedbig.png')} style={styles.verifiedIcon} />
               <Text style={styles.verifiedText}> verified</Text>
             </View>
           </View>
@@ -353,12 +421,12 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
                 onPress={() => handleAgentActionPress(action)}
               >
                 <View style={styles.taskLeft}>
-                  <Image source={require('../assets/openai.png')} style={styles.agentLogo} />
+                  <Image source={require('../../../assets/icons/openai.png')} style={styles.agentLogo} />
                   <View style={styles.taskInfo}>
                     <Text style={styles.agentName}>OpenAI Agent</Text>
                     <View style={styles.actionRow}>
                       <Text style={styles.actionText}>Sent an </Text>
-                      <Image source={require('../assets/email.png')} style={styles.actionIcon} />
+                      <Image source={require('../../../assets/icons/email.png')} style={styles.actionIcon} />
                       <Text style={styles.actionText}> email</Text>
                     </View>
                   </View>
@@ -367,7 +435,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
                   <Text style={styles.taskTime}>
                     {formatTimeAgo(action.timestamp)}
                   </Text>
-                  <Image source={require('../assets/verifiedsmall.png')} style={styles.verificationSmall} />
+                  <Image source={require('../../../assets/icons/verifiedsmall.png')} style={styles.verificationSmall} />
                 </View>
               </TouchableOpacity>
             ))
@@ -390,6 +458,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
           onClose={() => setShowSettings(false)}
           walletAddress={account?.bech32Address || ''}
           onLogout={onLogout}
+          onRefresh={loadData}
         />
       )}
     </View>

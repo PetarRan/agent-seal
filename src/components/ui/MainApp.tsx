@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useAbstraxionAccount } from '@burnt-labs/abstraxion-react-native';
-import { ManagerDashboard } from './ManagerDashboard';
+import { ManagerDashboard } from '../features/ManagerDashboard';
 import { SplashScreen } from './SplashScreen';
 
 export const MainApp: React.FC = () => {

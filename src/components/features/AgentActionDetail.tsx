@@ -9,7 +9,7 @@ import {
   Animated,
   Image,
 } from 'react-native';
-import { AgentAction } from '../types/agent';
+import { AgentAction } from '../../types/agent/agent';
 
 interface AgentActionDetailProps {
   action: AgentAction;
@@ -81,10 +81,10 @@ export const AgentActionDetail: React.FC<AgentActionDetailProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.agentInfo}>
-            <Image source={require('../assets/openai_white.png')} style={styles.agentIcon} />
+            <Image source={require('../../../assets/icons/openai_white.png')} style={styles.agentIcon} />
             <Text style={styles.agentName}>OpenAI Agent</Text>
           </View>
-          <Image source={require('../assets/verifiedsmall.png')} style={styles.verificationIcon} />
+          <Image source={require('../../../assets/icons/verifiedsmall.png')} style={styles.verificationIcon} />
         </View>
 
         {/* Content */}

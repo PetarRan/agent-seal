@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,17 +9,20 @@ import {
   Animated,
   Image,
 } from 'react-native';
+import { AgentActionLogger } from '../features/AgentActionLogger';
 
 interface SettingsProps {
   onClose: () => void;
   walletAddress: string;
   onLogout: () => void;
+  onRefresh?: () => void;
 }
 
 const { height: screenHeight } = Dimensions.get('window');
 
-export const Settings: React.FC<SettingsProps> = ({ onClose, walletAddress, onLogout }) => {
+export const Settings: React.FC<SettingsProps> = ({ onClose, walletAddress, onLogout, onRefresh }) => {
   const slideAnim = useRef(new Animated.Value(screenHeight)).current;
+  const [showZKTLSLogger, setShowZKTLSLogger] = useState(false);
 
   useEffect(() => {
     // Slide up animation
@@ -60,6 +63,32 @@ export const Settings: React.FC<SettingsProps> = ({ onClose, walletAddress, onLo
     handleClose();
   };
 
+  const handleZKTLSLogger = () => {
+    setShowZKTLSLogger(true);
+  };
+
+  const handleCloseZKTLSLogger = () => {
+    setShowZKTLSLogger(false);
+    // Refresh the dashboard to show new actions
+    if (onRefresh) {
+      onRefresh();
+    }
+  };
+
+  if (showZKTLSLogger) {
+    return (
+      <View style={styles.fullScreen}>
+        <View style={styles.zktlsHeader}>
+          <TouchableOpacity onPress={handleCloseZKTLSLogger}>
+            <Text style={styles.backButton}>← Back to Settings</Text>
+          </TouchableOpacity>
+          <Text style={styles.zktlsTitle}>Xion zkTLS Logger</Text>
+        </View>
+        <AgentActionLogger agentId="test_agent_001" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.overlay}>
       <TouchableOpacity style={styles.backdrop} onPress={handleClose} />
@@ -81,14 +110,14 @@ export const Settings: React.FC<SettingsProps> = ({ onClose, walletAddress, onLo
 
         {/* Profile Section */}
         <View style={styles.profileSection}>
-          <Image source={require('../assets/profile.png')} style={styles.profileImage} />
+          <Image source={require('../../../assets/media/profile.png')} style={styles.profileImage} />
           <Text style={styles.walletAddress}>
             {truncateWalletAddress(walletAddress)}
           </Text>
         </View>
 
         {/* Settings Options */}
-        <View style={styles.optionsContainer}>
+        <ScrollView style={styles.optionsContainer}>
           <TouchableOpacity style={styles.optionItem}>
             <Text style={styles.optionText}>Appearance</Text>
             <Text style={styles.optionArrow}>›</Text>
@@ -114,6 +143,15 @@ export const Settings: React.FC<SettingsProps> = ({ onClose, walletAddress, onLo
             <Text style={styles.optionArrow}>›</Text>
           </TouchableOpacity>
 
+          {/* Developer Options */}
+          <View style={styles.developerSection}>
+            <Text style={styles.sectionTitle}>Developer Options</Text>
+            <TouchableOpacity style={styles.optionItem} onPress={handleZKTLSLogger}>
+              <Text style={styles.optionText}>Xion zkTLS Logger</Text>
+              <Text style={styles.optionArrow}>›</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Danger Zone */}
           <View style={styles.dangerZone}>
             <TouchableOpacity style={styles.optionItem} onPress={handleLogout}>
@@ -124,7 +162,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose, walletAddress, onLo
               <Text style={styles.dangerText}>Delete account</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </ScrollView>
       </Animated.View>
     </View>
   );
@@ -153,6 +191,28 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     maxHeight: screenHeight * 0.95,
     minHeight: screenHeight * 0.8,
+  },
+  fullScreen: {
+    flex: 1,
+    backgroundColor: '#0C0F11',
+  },
+  zktlsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  backButton: {
+    fontSize: 16,
+    color: '#2196F3',
+    marginRight: 20,
+  },
+  zktlsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
   },
   handle: {
     width: 40,
@@ -214,6 +274,18 @@ const styles = StyleSheet.create({
   optionArrow: {
     fontSize: 18,
     color: '#666',
+  },
+  developerSection: {
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    color: '#666',
+    fontFamily: 'Hauora',
+    marginBottom: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   dangerZone: {
     marginTop: 20,

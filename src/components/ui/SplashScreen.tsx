@@ -49,7 +49,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
       
       {/* Animated Background Image */}
       <Animated.Image
-        source={require('../assets/bg.png')}
+        source={require('../../../assets/media/bg.png')}
         style={[
           styles.backgroundImage,
           {

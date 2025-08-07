@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { AbstraxionProvider } from "@burnt-labs/abstraxion-react-native";
-import { MainApp } from './components/MainApp';
+import { MainApp } from './src/components/ui/MainApp';
 
 export default function App() {
   const treasuryConfig = {
