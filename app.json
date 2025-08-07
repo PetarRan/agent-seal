@@ -13,7 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.agentseal.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,8 +23,16 @@
       },
       "edgeToEdgeEnabled": true
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    }
+    "fonts": [
+      {
+        "asset": "./assets/fonts/Hauora-Regular.ttf",
+        "family": "Hauora"
+      },
+      {
+        "asset": "./assets/fonts/Hauora-Medium.ttf",
+        "family": "Hauora",
+        "weight": "500"
+      }
+    ]
   }
 }
