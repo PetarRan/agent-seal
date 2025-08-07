@@ -12,7 +12,7 @@ export default function App() {
     <AbstraxionProvider config={treasuryConfig}>
       <View style={styles.container}>
         <MainApp />
-        <StatusBar style="auto" />
+        <StatusBar style="light" />
       </View>
     </AbstraxionProvider>
   );

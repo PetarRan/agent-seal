@@ -157,7 +157,6 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
       
       {/* Background Image */}
       <Image source={require('../assets/homebg.png')} style={styles.backgroundImage} resizeMode="cover" />
@@ -167,7 +166,9 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Home</Text>
-          <Image source={require('../assets/profile.png')} style={styles.profileImage} />
+          <TouchableOpacity onPress={() => setShowSettings(true)}>
+            <Image source={require('../assets/profile.png')} style={styles.profileImage} />
+          </TouchableOpacity>
         </View>
 
         {/* Current Day and Date */}

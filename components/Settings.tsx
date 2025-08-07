@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Animated,
+  Image,
 } from 'react-native';
 
 interface SettingsProps {
@@ -16,6 +18,28 @@ interface SettingsProps {
 const { height: screenHeight } = Dimensions.get('window');
 
 export const Settings: React.FC<SettingsProps> = ({ onClose, walletAddress }) => {
+  const slideAnim = useRef(new Animated.Value(screenHeight)).current;
+
+  useEffect(() => {
+    // Slide up animation
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const handleClose = () => {
+    // Slide down animation
+    Animated.timing(slideAnim, {
+      toValue: screenHeight,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      onClose();
+    });
+  };
+
   const truncateWalletAddress = (address: string) => {
     if (!address) return 'Not connected';
     if (address.length <= 20) return address;
@@ -25,19 +49,29 @@ export const Settings: React.FC<SettingsProps> = ({ onClose, walletAddress }) =>
   const handleLogout = () => {
     // In real app, this would handle logout logic
     console.log('Logout pressed');
-    onClose();
+    handleClose();
   };
 
   const handleDeleteAccount = () => {
     // In real app, this would handle account deletion
     console.log('Delete account pressed');
-    onClose();
+    handleClose();
   };
 
   return (
     <View style={styles.overlay}>
-      <TouchableOpacity style={styles.backdrop} onPress={onClose} />
-      <View style={styles.container}>
+      <TouchableOpacity style={styles.backdrop} onPress={handleClose} />
+      <Animated.View 
+        style={[
+          styles.container,
+          {
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
+        {/* Handle */}
+        <View style={styles.handle} />
+        
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Settings</Text>
@@ -45,16 +79,14 @@ export const Settings: React.FC<SettingsProps> = ({ onClose, walletAddress }) =>
 
         {/* Profile Section */}
         <View style={styles.profileSection}>
-          <View style={styles.profileImage}>
-            <Text style={styles.profileInitial}>J</Text>
-          </View>
+          <Image source={require('../assets/profile.png')} style={styles.profileImage} />
           <Text style={styles.walletAddress}>
             {truncateWalletAddress(walletAddress)}
           </Text>
         </View>
 
         {/* Settings Options */}
-        <ScrollView style={styles.optionsContainer}>
+        <View style={styles.optionsContainer}>
           <TouchableOpacity style={styles.optionItem}>
             <Text style={styles.optionText}>Appearance</Text>
             <Text style={styles.optionArrow}>›</Text>
@@ -90,8 +122,8 @@ export const Settings: React.FC<SettingsProps> = ({ onClose, walletAddress }) =>
               <Text style={styles.dangerText}>Delete account</Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </View>
+        </View>
+      </Animated.View>
     </View>
   );
 };
@@ -114,65 +146,68 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   container: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#0C0F11',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: screenHeight * 0.85,
-    minHeight: screenHeight * 0.6,
+    maxHeight: screenHeight * 0.95,
+    minHeight: screenHeight * 0.8,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#666',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 8,
   },
   header: {
     paddingHorizontal: 20,
     paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
   },
   headerTitle: {
     fontSize: 32,
     fontWeight: 'bold',
     color: 'white',
+    fontFamily: 'Hauora',
   },
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
   },
   profileImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     marginRight: 15,
   },
-  profileInitial: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
   walletAddress: {
-    fontSize: 16,
+    fontSize: 14,
     color: 'white',
-    fontFamily: 'monospace',
+    fontFamily: 'Hauora',
+    textDecorationLine: 'underline',
   },
   optionsContainer: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingVertical: 20,
   },
   optionItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    paddingHorizontal: 16,
+    marginVertical: 4,
+    backgroundColor: '#FFFFFF0D',
+    borderRadius: 12,
   },
   optionText: {
-    fontSize: 16,
+    fontSize: 14,
     color: 'white',
+    fontFamily: 'Hauora',
   },
   optionArrow: {
     fontSize: 18,
@@ -182,7 +217,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   dangerText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#FF3B30',
+    fontFamily: 'Hauora',
   },
 });
