@@ -13,11 +13,12 @@ import {
 interface SettingsProps {
   onClose: () => void;
   walletAddress: string;
+  onLogout: () => void;
 }
 
 const { height: screenHeight } = Dimensions.get('window');
 
-export const Settings: React.FC<SettingsProps> = ({ onClose, walletAddress }) => {
+export const Settings: React.FC<SettingsProps> = ({ onClose, walletAddress, onLogout }) => {
   const slideAnim = useRef(new Animated.Value(screenHeight)).current;
 
   useEffect(() => {
@@ -50,6 +51,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClose, walletAddress }) =>
     // In real app, this would handle logout logic
     console.log('Logout pressed');
     handleClose();
+    onLogout(); // Return to splash screen
   };
 
   const handleDeleteAccount = () => {

@@ -6,16 +6,20 @@ import { SplashScreen } from './SplashScreen';
 
 export const MainApp: React.FC = () => {
   const { data: account, isConnected, login } = useAbstraxionAccount();
-  const [showSplash, setShowSplash] = useState(false); // Skip splash for now
+  const [showSplash, setShowSplash] = useState(!isConnected);
 
   const handleContinueWithWallet = async () => {
-    // Temporarily bypass authentication
+    // Temporarily bypass authentication for demo
     setShowSplash(false);
   };
 
   const handleSetupWallet = async () => {
-    // Temporarily bypass authentication
+    // Temporarily bypass authentication for demo
     setShowSplash(false);
+  };
+
+  const handleLogout = () => {
+    setShowSplash(true);
   };
 
   if (showSplash) {
@@ -29,7 +33,10 @@ export const MainApp: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ManagerDashboard onAgentActionPress={(action) => console.log('Action pressed:', action)} />
+      <ManagerDashboard 
+        onAgentActionPress={(action) => console.log('Action pressed:', action)}
+        onLogout={handleLogout}
+      />
     </View>
   );
 };

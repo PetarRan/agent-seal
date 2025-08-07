@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   StatusBar,
   Image,
+  Animated,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
@@ -28,14 +29,33 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   onContinueWithWallet,
   onSetupWallet,
 }) => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Fade in animation for background
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Background Image */}
-      <Image
+      {/* Black Background */}
+      <View style={styles.blackBackground} />
+      
+      {/* Animated Background Image */}
+      <Animated.Image
         source={require('../assets/bg.png')}
-        style={styles.backgroundImage}
+        style={[
+          styles.backgroundImage,
+          {
+            opacity: fadeAnim,
+          }
+        ]}
         resizeMode="cover"
       />
       
@@ -71,6 +91,16 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
+  },
+  blackBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#000000',
   },
   backgroundImage: {
     position: 'absolute',

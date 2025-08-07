@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   StatusBar,
+  Animated,
 } from 'react-native';
 import { useAbstraxionAccount } from '@burnt-labs/abstraxion-react-native';
 import { AgentAction } from '../types/agent';
@@ -16,9 +17,10 @@ import { useBlockchainEvents } from '../services/blockchainEventService';
 
 interface ManagerDashboardProps {
   onAgentActionPress: (action: AgentAction) => void;
+  onLogout: () => void;
 }
 
-export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActionPress }) => {
+export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActionPress, onLogout }) => {
   const { data: account } = useAbstraxionAccount();
   const { fetchAgentActions, getAgents } = useBlockchainEvents();
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -28,6 +30,8 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
   const [agentActions, setAgentActions] = useState<AgentAction[]>([]);
   const [agents, setAgents] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   
   // Dropdown states
   const [showAgentDropdown, setShowAgentDropdown] = useState(false);
@@ -100,6 +104,15 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
     loadData();
   }, []); // Empty dependency array to prevent infinite loops
 
+  // Fade in animation for background
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   const handleAgentActionPress = (action: AgentAction) => {
     setSelectedAction(action);
     setShowActionDetail(true);
@@ -158,8 +171,20 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
   return (
     <View style={styles.container}>
       
-      {/* Background Image */}
-      <Image source={require('../assets/homebg.png')} style={styles.backgroundImage} resizeMode="cover" />
+      {/* Black Background */}
+      <View style={styles.blackBackground} />
+      
+      {/* Animated Background Image */}
+      <Animated.Image 
+        source={require('../assets/homebg.png')} 
+        style={[
+          styles.backgroundImage,
+          {
+            opacity: fadeAnim,
+          }
+        ]} 
+        resizeMode="cover" 
+      />
       
       {/* Top Section - Dark Background */}
       <View style={styles.topSection}>
@@ -364,6 +389,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
         <Settings
           onClose={() => setShowSettings(false)}
           walletAddress={account?.bech32Address || ''}
+          onLogout={onLogout}
         />
       )}
     </View>
@@ -375,6 +401,16 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
+  },
+  blackBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#000000',
   },
   backgroundImage: {
     position: 'absolute',
