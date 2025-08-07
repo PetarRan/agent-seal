@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   Dimensions,
   Animated,
+  Image,
 } from 'react-native';
 import { AgentAction } from '../types/agent';
 
@@ -25,6 +26,28 @@ export const AgentActionDetail: React.FC<AgentActionDetailProps> = ({
   onAcknowledge,
   onFlagIssue,
 }) => {
+  const slideAnim = useRef(new Animated.Value(screenHeight)).current;
+
+  useEffect(() => {
+    // Slide up animation
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const handleClose = () => {
+    // Slide down animation
+    Animated.timing(slideAnim, {
+      toValue: screenHeight,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      onClose();
+    });
+  };
+
   const formatTimestamp = (timestamp: number) => {
     const date = new Date(timestamp);
     return date.toLocaleDateString('en-US', {
@@ -43,23 +66,29 @@ export const AgentActionDetail: React.FC<AgentActionDetailProps> = ({
 
   return (
     <View style={styles.overlay}>
-      <TouchableOpacity style={styles.backdrop} onPress={onClose} />
-      <View style={styles.container}>
+      <TouchableOpacity style={styles.backdrop} onPress={handleClose} />
+      <Animated.View 
+        style={[
+          styles.container,
+          {
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
+        {/* Handle */}
+        <View style={styles.handle} />
+        
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.agentInfo}>
-            <View style={styles.agentIcon}>
-              <Text style={styles.agentIconText}>🤖</Text>
-            </View>
+            <Image source={require('../assets/openai_white.png')} style={styles.agentIcon} />
             <Text style={styles.agentName}>OpenAI Agent</Text>
           </View>
-          <View style={styles.verificationStatus}>
-            <Text style={styles.verificationIcon}>🌱</Text>
-          </View>
+          <Image source={require('../assets/verifiedsmall.png')} style={styles.verificationIcon} />
         </View>
 
         {/* Content */}
-        <ScrollView style={styles.content}>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Timestamp Section */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -172,7 +201,7 @@ export const AgentActionDetail: React.FC<AgentActionDetailProps> = ({
             <Text style={styles.acknowledgeButtonText}>Acknowledge</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 };
@@ -195,11 +224,20 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   container: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#0C0F11',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: screenHeight * 0.85,
     minHeight: screenHeight * 0.6,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#666',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 8,
   },
   header: {
     flexDirection: 'row',
@@ -215,32 +253,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   agentIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  agentIconText: {
-    fontSize: 20,
-  },
-  agentName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: 'white',
-  },
-  verificationStatus: {
     width: 24,
     height: 24,
-    borderRadius: 12,
-    backgroundColor: '#34C759',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  agentName: {
+    fontSize: 20,
+    fontWeight: '500',
+    color: 'white',
+    fontFamily: 'Hauora',
   },
   verificationIcon: {
-    fontSize: 14,
+    width: 16,
+    height: 16,
   },
   content: {
     flex: 1,
@@ -280,14 +306,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF3B30',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: 'white',
   },
   sectionValue: {
-    fontSize: 16,
-    color: 'white',
-    lineHeight: 22,
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    lineHeight: 20,
   },
   hashValue: {
     textDecorationLine: 'underline',
@@ -299,8 +325,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   notesText: {
-    fontSize: 16,
-    color: 'white',
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   addNoteButton: {
     backgroundColor: '#333',
@@ -309,12 +335,12 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   addNoteText: {
-    fontSize: 14,
+    fontSize: 12,
     color: 'white',
   },
   locationCoords: {
     fontSize: 14,
-    color: '#999',
+    color: 'rgba(255, 255, 255, 0.6)',
     marginTop: 4,
   },
   statusContainer: {
@@ -337,33 +363,30 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF3B30',
   },
   actionButtons: {
-    flexDirection: 'row',
     paddingHorizontal: 20,
     paddingVertical: 20,
-    gap: 12,
   },
   flagButton: {
-    flex: 1,
     backgroundColor: '#333',
     paddingVertical: 15,
     borderRadius: 12,
     alignItems: 'center',
+    marginBottom: 8,
   },
   flagButtonText: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
     color: '#FF3B30',
   },
   acknowledgeButton: {
-    flex: 1,
     backgroundColor: 'white',
     paddingVertical: 15,
     borderRadius: 12,
     alignItems: 'center',
   },
   acknowledgeButtonText: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: '#0C0F11',
   },
 });
