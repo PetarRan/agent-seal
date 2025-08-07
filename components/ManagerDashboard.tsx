@@ -6,7 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import { useAbstraxionAccount } from '@burnt-labs/abstraxion-react-native';
 import { AgentAction } from '../types/agent';
@@ -28,6 +28,19 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
   const [agentActions, setAgentActions] = useState<AgentAction[]>([]);
   const [agents, setAgents] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Dropdown states
+  const [showAgentDropdown, setShowAgentDropdown] = useState(false);
+  const [showActionDropdown, setShowActionDropdown] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState('All agents');
+  const [selectedActionType, setSelectedActionType] = useState('All actions');
+  const [selectedStatus, setSelectedStatus] = useState('All status');
+  
+  // Dropdown options
+  const agentOptions = ['All agents', 'OpenAI', 'Claude'];
+  const actionOptions = ['All actions', 'Emails', 'Pull requests', 'Code changes'];
+  const statusOptions = ['All status', 'Done', 'In progress', 'Scheduled'];
 
   // Fetch data from blockchain
   useEffect(() => {
@@ -108,6 +121,11 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
     const now = Date.now();
     const diff = now - timestamp;
     const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    
+    if (days > 0) {
+      return `${days}d ago`;
+    }
     return `${hours}h ago`;
   };
 
@@ -125,63 +143,84 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
     return dates;
   };
 
+  const getCurrentDay = () => {
+    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    return days[new Date().getDay()];
+  };
+
+  const getCurrentDate = () => {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                   'July', 'August', 'September', 'October', 'November', 'December'];
+    const date = new Date();
+    return `${months[date.getMonth()]} ${date.getDate()}\n${date.getFullYear()}`;
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Home</Text>
-        <View style={styles.headerRight}>
-          <View style={styles.profileSection}>
-            <View style={styles.profileImage}>
-              <Text style={styles.profileInitial}>J</Text>
-            </View>
-            <Text style={styles.date}>August 9 2025</Text>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      
+      {/* Background Image */}
+      <Image source={require('../assets/homebg.png')} style={styles.backgroundImage} resizeMode="cover" />
+      
+      {/* Top Section - Dark Background */}
+      <View style={styles.topSection}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Home</Text>
+          <Image source={require('../assets/profile.png')} style={styles.profileImage} />
+        </View>
+
+        {/* Current Day and Date */}
+        <View style={styles.dateSection}>
+          <View style={styles.currentDayContainer}>
+            <Text style={styles.currentDayText}>{getCurrentDay()}</Text>
+            <View style={styles.currentDayDot} />
           </View>
-          <TouchableOpacity onPress={() => setShowSettings(true)}>
-            <Text style={styles.settingsButton}>⚙️</Text>
-          </TouchableOpacity>
+          <Text style={styles.fullDateText}>{getCurrentDate()}</Text>
+        </View>
+
+        {/* Greeting and Summary */}
+        <View style={styles.greetingSection}>
+          <Text style={styles.greeting}>Good morning, Jessica.</Text>
+          <View style={styles.summaryContainer}>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryText}>You have </Text>
+              <Image source={require('../assets/aigen.png')} style={styles.summaryIcon} />
+              <Text style={styles.summaryText}> 4 agents doing </Text>
+              <Image source={require('../assets/check.png')} style={styles.summaryIcon} />
+              <Text style={styles.summaryText}> 6 tasks. All your</Text>
+            </View>
+            <View style={styles.verificationRow}>
+              <Text style={styles.summaryText}>agents have been </Text>
+              <Image source={require('../assets/verifiedbig.png')} style={styles.verifiedIcon} />
+              <Text style={styles.verifiedText}> verified</Text>
+            </View>
+          </View>
         </View>
       </View>
 
-      {/* Greeting and Summary */}
-      <View style={styles.greetingSection}>
-        <Text style={styles.greeting}>Good morning, Jessica.</Text>
-        <View style={styles.summary}>
-          <Text style={styles.summaryText}>
-            You have ✨ 4 agents doing ✅ 6 tasks.
-          </Text>
-          <Text style={styles.verificationText}>
-            All your agents have been 🌱 verified
-          </Text>
-        </View>
-        <View style={styles.currentDay}>
-          <Text style={styles.currentDayText}>Mon</Text>
-          <View style={styles.currentDayDot} />
-        </View>
-      </View>
-
-      {/* Tasks Section */}
-      <View style={styles.tasksContainer}>
-        {/* Date Selector */}
-        <View style={styles.dateSelector}>
+      {/* Bottom Section - White Overlay */}
+      <View style={styles.bottomSection}>
+        {/* Calendar Timeline */}
+        <View style={styles.calendarContainer}>
           {getDateRange().map((date, index) => (
             <TouchableOpacity
               key={index}
               style={[
-                styles.dateItem,
-                date.getDate() === 9 && styles.selectedDate,
+                styles.calendarItem,
+                date.getDate() === 9 && styles.selectedCalendarItem,
               ]}
               onPress={() => setSelectedDate(date)}
             >
               <Text style={[
-                styles.dateNumber,
-                date.getDate() === 9 && styles.selectedDateText,
+                styles.calendarNumber,
+                date.getDate() === 9 && styles.selectedCalendarText,
               ]}>
                 {date.getDate()}
               </Text>
               <Text style={[
-                styles.dateDay,
-                date.getDate() === 9 && styles.selectedDateText,
+                styles.calendarDay,
+                date.getDate() === 9 && styles.selectedCalendarText,
               ]}>
                 {getDayName(date)}
               </Text>
@@ -190,20 +229,83 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
         </View>
 
         {/* Filters */}
-        <View style={styles.filters}>
-          <View style={styles.filterItem}>
-            <Text style={styles.filterText}>All agents</Text>
+        <View style={styles.filtersContainer}>
+          <TouchableOpacity 
+            style={styles.filterItem}
+            onPress={() => setShowAgentDropdown(!showAgentDropdown)}
+          >
+            <Text style={styles.filterText}>{selectedAgent}</Text>
             <Text style={styles.filterArrow}>▼</Text>
-          </View>
-          <View style={styles.filterItem}>
-            <Text style={styles.filterText}>All actions</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.filterItem}
+            onPress={() => setShowActionDropdown(!showActionDropdown)}
+          >
+            <Text style={styles.filterText}>{selectedActionType}</Text>
             <Text style={styles.filterArrow}>▼</Text>
-          </View>
-          <View style={styles.filterItem}>
-            <Text style={styles.filterText}>All status</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.filterItem}
+            onPress={() => setShowStatusDropdown(!showStatusDropdown)}
+          >
+            <Text style={styles.filterText}>{selectedStatus}</Text>
             <Text style={styles.filterArrow}>▼</Text>
-          </View>
+          </TouchableOpacity>
         </View>
+
+        {/* Dropdown Menus */}
+        {showAgentDropdown && (
+          <View style={styles.dropdownMenu}>
+            {agentOptions.map((option, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.dropdownItem}
+                onPress={() => {
+                  setSelectedAgent(option);
+                  setShowAgentDropdown(false);
+                }}
+              >
+                <Text style={styles.dropdownText}>{option}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {showActionDropdown && (
+          <View style={styles.dropdownMenu}>
+            {actionOptions.map((option, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.dropdownItem}
+                onPress={() => {
+                  setSelectedActionType(option);
+                  setShowActionDropdown(false);
+                }}
+              >
+                <Text style={styles.dropdownText}>{option}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {showStatusDropdown && (
+          <View style={styles.dropdownMenu}>
+            {statusOptions.map((option, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.dropdownItem}
+                onPress={() => {
+                  setSelectedStatus(option);
+                  setShowStatusDropdown(false);
+                }}
+              >
+                <Text style={styles.dropdownText}>{option}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         {/* Tasks Header */}
         <View style={styles.tasksHeader}>
@@ -212,7 +314,7 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
         </View>
 
         {/* Tasks List */}
-        <ScrollView style={styles.tasksList}>
+        <ScrollView style={styles.tasksList} showsVerticalScrollIndicator={false}>
           {isLoading ? (
             <View style={styles.loadingContainer}>
               <Text style={styles.loadingText}>Loading agent actions...</Text>
@@ -225,23 +327,21 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
                 onPress={() => handleAgentActionPress(action)}
               >
                 <View style={styles.taskLeft}>
-                  <View style={styles.agentIcon}>
-                    <Text style={styles.agentIconText}>🤖</Text>
-                  </View>
+                  <Image source={require('../assets/openai.png')} style={styles.agentLogo} />
                   <View style={styles.taskInfo}>
                     <Text style={styles.agentName}>OpenAI Agent</Text>
-                    <Text style={styles.taskDescription}>
-                      {action.actionMetadata.description}
-                    </Text>
+                    <View style={styles.actionRow}>
+                      <Text style={styles.actionText}>Sent an </Text>
+                      <Image source={require('../assets/email.png')} style={styles.actionIcon} />
+                      <Text style={styles.actionText}> email</Text>
+                    </View>
                   </View>
                 </View>
                 <View style={styles.taskRight}>
                   <Text style={styles.taskTime}>
                     {formatTimeAgo(action.timestamp)}
                   </Text>
-                  <View style={styles.verificationIcon}>
-                    <Text style={styles.verificationIconText}>🌱</Text>
-                  </View>
+                  <Image source={require('../assets/verifiedsmall.png')} style={styles.verificationSmall} />
                 </View>
               </TouchableOpacity>
             ))
@@ -265,148 +365,185 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ onAgentActio
           walletAddress={account?.bech32Address || ''}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    width: '100%',
+    height: '100%',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  topSection: {
+    flex: 0.45,
+    paddingTop: 60,
+    paddingHorizontal: 0,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 30,
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 20,
   },
   headerTitle: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: '500',
     color: 'white',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  profileSection: {
-    alignItems: 'center',
-    marginRight: 15,
+    fontFamily: 'Hauora',
   },
   profileImage: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
+  },
+  dateSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  profileInitial: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  date: {
-    color: 'white',
-    fontSize: 12,
-    marginTop: 5,
-  },
-  settingsButton: {
-    fontSize: 24,
-  },
-  greetingSection: {
+    marginBottom: 30,
     paddingHorizontal: 20,
-    paddingBottom: 20,
   },
-  greeting: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: 'white',
-    marginBottom: 10,
-  },
-  summary: {
-    marginBottom: 15,
-  },
-  summaryText: {
-    fontSize: 16,
-    color: 'white',
-    marginBottom: 5,
-  },
-  verificationText: {
-    fontSize: 14,
-    color: '#34C759',
-  },
-  currentDay: {
+  currentDayContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   currentDayText: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 42,
+    fontWeight: '500',
     color: 'white',
+    fontFamily: 'Hauora',
   },
   currentDayDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#FF3B30',
+    backgroundColor: '#EE6655',
     marginLeft: 10,
   },
-  tasksContainer: {
+  fullDateText: {
+    fontSize: 16,
+    color: 'white',
+    textAlign: 'right',
+    lineHeight: 20,
+  },
+  greetingSection: {
     flex: 1,
+    paddingHorizontal: 20,
+  },
+  greeting: {
+    fontSize: 25,
+    fontWeight: '500',
+    color: 'white',
+    marginBottom: 15,
+    fontFamily: 'Hauora',
+    lineHeight: 25,
+  },
+  summaryContainer: {
+    flex: 1,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+    flexWrap: 'wrap',
+  },
+  summaryText: {
+    fontSize: 25,
+    color: 'white',
+    fontFamily: 'Hauora',
+    lineHeight: 25,
+  },
+  summaryIcon: {
+    width: 20,
+    height: 20,
+    marginHorizontal: 4,
+  },
+  verificationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  verifiedIcon: {
+    width: 20,
+    height: 20,
+    marginHorizontal: 4,
+  },
+  verifiedText: {
+    fontSize: 25,
+    color: '#32FF87',
+    fontFamily: 'Hauora',
+    lineHeight: 25,
+  },
+  bottomSection: {
+    flex: 0.55,
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 20,
+    paddingHorizontal: 0,
   },
-  dateSelector: {
+    calendarContainer: {
+    marginBottom: 10,
+    marginLeft: 'auto',
+    marginRight: 'auto',
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  dateItem: {
+    height: 50,
     alignItems: 'center',
-    marginRight: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
   },
-  selectedDate: {
+  calendarItem: {
+    alignItems: 'center',
+    marginRight: 12,
+    paddingVertical: 0,
+    paddingHorizontal: 6,
+    borderRadius: 6,
+  },
+  selectedCalendarItem: {
     backgroundColor: '#f0f0f0',
-    borderWidth: 1,
-    borderColor: 'white',
   },
-  dateNumber: {
-    fontSize: 16,
+  calendarNumber: {
+    fontSize: 26,
     fontWeight: '600',
     color: '#333',
   },
-  selectedDateText: {
+  selectedCalendarText: {
     color: '#007AFF',
   },
-  dateDay: {
+  calendarDay: {
     fontSize: 12,
     color: '#666',
-    marginTop: 2,
+    marginTop: 0,
   },
-  filters: {
+  filtersContainer: {
     flexDirection: 'row',
+    marginBottom: 15,
     paddingHorizontal: 20,
-    marginBottom: 20,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   filterItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#f8f8f8',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    marginRight: 10,
+    flex: 1,
+    marginHorizontal: 4,
   },
   filterText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#333',
     marginRight: 5,
   },
@@ -418,8 +555,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
     marginBottom: 15,
+    paddingHorizontal: 20,
   },
   tasksTitle: {
     fontSize: 18,
@@ -448,17 +585,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  agentIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
+  agentLogo: {
+    width: 32,
+    height: 32,
     marginRight: 12,
-  },
-  agentIconText: {
-    fontSize: 20,
   },
   taskInfo: {
     flex: 1,
@@ -467,11 +597,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 2,
+    marginBottom: 4,
   },
-  taskDescription: {
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionText: {
     fontSize: 14,
     color: '#666',
+  },
+  actionIcon: {
+    width: 14,
+    height: 14,
+    marginHorizontal: 2,
   },
   taskRight: {
     alignItems: 'flex-end',
@@ -481,16 +620,9 @@ const styles = StyleSheet.create({
     color: '#999',
     marginBottom: 5,
   },
-  verificationIcon: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#34C759',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  verificationIconText: {
-    fontSize: 12,
+  verificationSmall: {
+    width: 16,
+    height: 16,
   },
   loadingContainer: {
     flex: 1,
@@ -501,5 +633,31 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     color: '#666',
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    right: 20,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    zIndex: 1000,
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  dropdownText: {
+    fontSize: 12,
+    color: '#333',
   },
 });
