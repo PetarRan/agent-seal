@@ -189,9 +189,9 @@ export const AgentActionLogger: React.FC<AgentActionLoggerProps> = ({ agentId = 
 
           <View style={styles.xionStatus}>
             <Text style={styles.statusLabel}>Xion Status:</Text>
-            <Text style={styles.statusText}>
+            <Text style={styles.statusText} numberOfLines={2}>
               {xionStatus?.demo
-                ? 'Demo Mode - Using simulated blockchain data'
+                ? 'Using simulated blockchain'
                 : xionStatus?.error
                   ? xionStatus.error
                   : `Chain: ${xionStatus?.chainId} | Balance: ${xionStatus?.balance || 'N/A'}`
@@ -378,6 +378,9 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 14,
     fontWeight: '500',
+    flex: 1,
+    color: 'white',
+    opacity: 0.8,
   },
   connected: {
     color: '#4CAF50',
@@ -392,7 +395,7 @@ const styles = StyleSheet.create({
   },
   xionStatus: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   formSection: {
     backgroundColor: '#2a2a2a',
