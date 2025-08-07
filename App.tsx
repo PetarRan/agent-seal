@@ -1,12 +1,19 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import { AbstraxionProvider } from "@burnt-labs/abstraxion-react-native";
 
 export default function App() {
+  const treasuryConfig = {
+    treasury: process.env.EXPO_PUBLIC_TREASURY_CONTRACT_ADDRESS,
+  };
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <AbstraxionProvider config={treasuryConfig}>
+      <View style={styles.container}>
+        <Text>Open up App.tsx to start working on your app!</Text>
+        <StatusBar style="auto" />
+      </View>
+    </AbstraxionProvider>
   );
 }
 
